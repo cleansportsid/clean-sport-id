@@ -9,6 +9,7 @@ export default function MedSearch() {
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   
+  // État pour les 6 filtres de statut
   const [selectedStatusFilter, setSelectedStatusFilter] = useState('ALL');
   const [selectedMed, setSelectedMed] = useState(null);
   
@@ -54,13 +55,22 @@ export default function MedSearch() {
     e.preventDefault();
   };
 
+  // Filtrage selon les 6 statuts
   const filterList = (list) => {
     if (selectedStatusFilter === 'ALL') return list;
-    return list.filter(med => med.Status === selectedStatusFilter);
+    return list.filter(med => med.Status?.trim().toUpperCase() === selectedStatusFilter.toUpperCase());
   };
 
   const filteredAuthorized = filterList(results.authorized);
   const filteredProhibited = filterList(results.prohibited);
+
+  // Fonction pour déterminer si un statut doit être vert ou rouge
+  const isAuthorizedStatus = (status) => {
+    if (!status) return false;
+    const cleanStatus = status.trim().toUpperCase();
+    // Seul "AUTORISE" (ou équivalent strict sans condition) est vert
+    return cleanStatus === 'AUTORISE' || cleanStatus === 'AUTORISÉ';
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 p-6 md:p-12 font-sans relative">
@@ -90,14 +100,17 @@ export default function MedSearch() {
             />
           </form>
 
+          {/* Boutons de filtrage pour les 6 cas */}
           <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-100">
             <span className="text-xs font-bold text-slate-400 self-center mr-2">Filtrer par :</span>
             {[
               { label: 'Tous', value: 'ALL' },
               { label: 'Autorisé', value: 'AUTORISE' },
-              { label: 'Interdit', value: 'INTERDIT' },
-              { label: 'Interdit Permanent', value: 'INTERDIT_PERMANENT' },
-              { label: 'Sous Conditions', value: 'AUTORISE_SOUS_CONDITIONS' }
+              { label: 'Autorisé sous conditions', value: 'AUTORISE_SOUS_CONDITIONS' },
+              { label: 'Interdit permanent', value: 'INTERDIT_PERMANENT' },
+              { label: 'Interdit certains sports', value: 'INTERDIT_CERTAINS_SPORTS' },
+              { label: 'Interdit compétition', value: 'INTERDIT_COMPETITION' },
+              { label: 'Interdit homme seulement', value: 'INTERDIT_HOMME_SEULEMENT' }
             ].map((filter) => (
               <button
                 key={filter.value}
@@ -115,37 +128,46 @@ export default function MedSearch() {
         </div>
 
         <div className="space-y-10">
+          {/* Section Interdits / Autres cas rouges */}
           {filteredProhibited.length > 0 && (
             <div className="animate-fade-in-up">
               <div className="flex items-center gap-3 mb-6 border-b border-slate-200 pb-3">
                 <AlertCircle className="text-red-500 w-7 h-7" />
-                <h3 className="text-2xl font-bold text-slate-800">Interdits ({filteredProhibited.length})</h3>
+                <h3 className="text-2xl font-bold text-slate-800">Résultats ({filteredProhibited.length})</h3>
               </div>
               <div className="grid gap-5 md:grid-cols-2">
-                {filteredProhibited.map(med => (
-                  <div 
-                    key={med._id} 
-                    onClick={() => setSelectedMed(med)}
-                    className="bg-white p-6 rounded-2xl border border-red-100 border-l-4 border-l-red-500 shadow-sm hover:shadow-md transition duration-200 flex flex-col cursor-pointer hover:border-red-300"
-                  >
-                    <div className="flex-grow">
-                        <h4 className="font-bold text-xl text-slate-800 mb-1">{med.Nom}</h4>
-                        <div className="text-slate-500 text-sm mb-4 space-y-1">
-                            <p>DCI: <span className="font-medium text-slate-700">{med.Dci}</span></p>
-                            <p>Dose: <span className="font-medium text-slate-700">{med.Dose}</span></p>
-                            <p>Voie: <span className="font-medium text-slate-700">{med.Voie}</span></p>
-                        </div>
-                        <span className="px-4 py-1.5 rounded-full text-xs font-bold bg-red-50 text-red-700 border border-red-100">
-                            Status: {med.Status}
-                        </span>
+                {filteredProhibited.map(med => {
+                  const isGreen = isAuthorizedStatus(med.Status);
+                  return (
+                    <div 
+                      key={med._id} 
+                      onClick={() => setSelectedMed(med)}
+                      className={`bg-white p-6 rounded-2xl border shadow-sm hover:shadow-md transition duration-200 flex flex-col cursor-pointer ${
+                        isGreen ? 'border-emerald-100 border-l-4 border-l-emerald-500 hover:border-emerald-300' : 'border-red-100 border-l-4 border-l-red-500 hover:border-red-300'
+                      }`}
+                    >
+                      <div className="flex-grow">
+                          <h4 className="font-bold text-xl text-slate-800 mb-1">{med.Nom}</h4>
+                          <div className="text-slate-500 text-sm mb-4 space-y-1">
+                              <p>DCI: <span className="font-medium text-slate-700">{med.Dci || med.DCI}</span></p>
+                              <p>Dose: <span className="font-medium text-slate-700">{med.Dose}</span></p>
+                              <p>Voie: <span className="font-medium text-slate-700">{med.Voie}</span></p>
+                          </div>
+                          <span className={`px-4 py-1.5 rounded-full text-xs font-bold border ${
+                            isGreen ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-red-50 text-red-700 border-red-100'
+                          }`}>
+                              Status: {med.Status}
+                          </span>
+                      </div>
+                      <p className="text-xs text-blue-600 font-semibold mt-4 text-right">Cliquer pour voir les détails &rarr;</p>
                     </div>
-                    <p className="text-xs text-blue-600 font-semibold mt-4 text-right">Cliquer pour voir les détails &rarr;</p>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}
 
+          {/* Section Autorisés (verts) */}
           {filteredAuthorized.length > 0 && (
             <div className="animate-fade-in-up">
               <div className="flex items-center gap-3 mb-6 border-b border-slate-200 pb-3">
@@ -185,6 +207,7 @@ export default function MedSearch() {
         </div>
       </div>
 
+      {/* MODALE DE DÉTAIL DU MÉDICAMENT */}
       {selectedMed && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
           <div className="bg-white rounded-3xl max-w-lg w-full p-8 shadow-2xl border border-slate-100 relative max-h-[90vh] overflow-y-auto">
@@ -196,7 +219,7 @@ export default function MedSearch() {
             </button>
 
             <span className={`inline-block px-4 py-1 rounded-full text-xs font-bold mb-4 ${
-              selectedMed.Status?.includes('INTERDIT') ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+              isAuthorizedStatus(selectedMed.Status) ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-red-50 text-red-700 border border-red-200'
             }`}>
               {selectedMed.Status}
             </span>
