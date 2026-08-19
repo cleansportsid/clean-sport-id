@@ -1,17 +1,15 @@
-
 const express = require('express');
 const router = express.Router();
 const AmaSubstance = require('../models/AmaSubstance');
 const MedicationAuthorized = require('../models/MedicationAuthorized');
 const MedicationProhibited = require('../models/MedicationProhibited');
 
-// Fonction pour rendre la recherche tolérante aux accents
-const escapeRegex = (text) => {
-  return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
-};
-
+// Fonction de nettoyage pour tolérer les accents et ignorer les casse sans casser les tirets
 const getAccentInsensitiveRegex = (query) => {
-  const sanitized = escapeRegex(query)
+  // On enlève les caractères spéciaux dangereux pour la regex tout en gardant les lettres et tirets
+  const clean = query.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  
+  const sanitized = clean
     .replace(/[éèêëÉÈÊË]/g, '[eéèêëÉÈÊË]')
     .replace(/[àâäÀÂÄ]/g, '[aàâäÀÂÄ]')
     .replace(/[ùûüÙÛÜ]/g, '[uùûüÙÛÜ]')
@@ -19,10 +17,10 @@ const getAccentInsensitiveRegex = (query) => {
     .replace(/[ôöÔÖ]/g, '[oôöÔÖ]')
     .replace(/[çÇ]/g, '[cçÇ]');
   
-  return new RegExp(sanitized, 'i'); // 'i' pour insensible à la casse
+  return new RegExp(sanitized, 'i');
 };
 
-// Moteur 1 : Médicaments (Recherche dans les 2 collections)
+// Moteur 1 : Médicaments
 router.get('/medications', async (req, res) => {
   try {
     const { q } = req.query;
@@ -30,7 +28,6 @@ router.get('/medications', async (req, res) => {
 
     const regex = getAccentInsensitiveRegex(q);
     
-    // Recherche en parallèle dans les deux collections
     const [authorized, prohibited] = await Promise.all([
       MedicationAuthorized.find({ $or: [{ Nom: regex }, { DCI: regex }] }).limit(50),
       MedicationProhibited.find({ $or: [{ Nom: regex }, { Dci: regex }] }).limit(50)
