@@ -62,10 +62,13 @@ export default function MedSearch() {
   const filteredAuthorized = filterList(results.authorized);
   const filteredProhibited = filterList(results.prohibited);
 
-  const isAuthorizedStatus = (status) => {
-    if (!status) return false;
-    const cleanStatus = status.trim().toUpperCase();
-    return cleanStatus === 'AUTORISE' || cleanStatus === 'AUTORISÉ';
+  // Fonction pour retourner le type de style selon le statut exact
+  const getStatusStyle = (status) => {
+    if (!status) return 'red';
+    const clean = status.trim().toUpperCase();
+    if (clean === 'AUTORISE' || clean === 'AUTORISÉ') return 'green';
+    if (clean === 'AUTORISE_SOUS_CONDITIONS') return 'yellow';
+    return 'red'; // Tous les autres cas d'interdiction
   };
 
   return (
@@ -132,14 +135,25 @@ export default function MedSearch() {
               </div>
               <div className="grid gap-5 md:grid-cols-2">
                 {filteredProhibited.map(med => {
-                  const isGreen = isAuthorizedStatus(med.Status);
+                  const statusType = getStatusStyle(med.Status);
+                  
+                  // Configuration dynamique des classes selon le type (green, yellow, red)
+                  let borderClass = 'border-red-100 border-l-4 border-l-red-500 hover:border-red-300';
+                  let badgeClass = 'bg-red-50 text-red-700 border-red-100';
+
+                  if (statusType === 'green') {
+                    borderClass = 'border-emerald-100 border-l-4 border-l-emerald-500 hover:border-emerald-300';
+                    badgeClass = 'bg-emerald-50 text-emerald-700 border-emerald-100';
+                  } else if (statusType === 'yellow') {
+                    borderClass = 'border-amber-100 border-l-4 border-l-amber-500 hover:border-amber-300';
+                    badgeClass = 'bg-amber-50 text-amber-700 border-amber-100';
+                  }
+
                   return (
                     <div 
                       key={med._id} 
                       onClick={() => setSelectedMed(med)}
-                      className={`bg-white p-6 rounded-2xl border shadow-sm hover:shadow-md transition duration-200 flex flex-col cursor-pointer ${
-                        isGreen ? 'border-emerald-100 border-l-4 border-l-emerald-500 hover:border-emerald-300' : 'border-red-100 border-l-4 border-l-red-500 hover:border-red-300'
-                      }`}
+                      className={`bg-white p-6 rounded-2xl border shadow-sm hover:shadow-md transition duration-200 flex flex-col cursor-pointer ${borderClass}`}
                     >
                       <div className="flex-grow">
                           <h4 className="font-bold text-xl text-slate-800 mb-1">{med.Nom}</h4>
@@ -148,9 +162,7 @@ export default function MedSearch() {
                               <p>Dose: <span className="font-medium text-slate-700">{med.Dose}</span></p>
                               <p>Voie: <span className="font-medium text-slate-700">{med.Voie}</span></p>
                           </div>
-                          <span className={`px-4 py-1.5 rounded-full text-xs font-bold border ${
-                            isGreen ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-red-50 text-red-700 border-red-100'
-                          }`}>
+                          <span className={`px-4 py-1.5 rounded-full text-xs font-bold border ${badgeClass}`}>
                               Status: {med.Status}
                           </span>
                       </div>
@@ -212,11 +224,18 @@ export default function MedSearch() {
               <X className="w-5 h-5" />
             </button>
 
-            <span className={`inline-block px-4 py-1 rounded-full text-xs font-bold mb-4 ${
-              isAuthorizedStatus(selectedMed.Status) ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-red-50 text-red-700 border border-red-200'
-            }`}>
-              {selectedMed.Status}
-            </span>
+            {(() => {
+              const statusType = getStatusStyle(selectedMed.Status);
+              let modalBadgeClass = 'bg-red-50 text-red-700 border-red-200';
+              if (statusType === 'green') modalBadgeClass = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+              if (statusType === 'yellow') modalBadgeClass = 'bg-amber-50 text-amber-700 border-amber-200';
+
+              return (
+                <span className={`inline-block px-4 py-1 rounded-full text-xs font-bold mb-4 border ${modalBadgeClass}`}>
+                  {selectedMed.Status}
+                </span>
+              );
+            })()}
 
             <h3 className="text-2xl font-extrabold text-slate-900 mb-2">{selectedMed.Nom}</h3>
             
@@ -230,7 +249,6 @@ export default function MedSearch() {
               )}
             </div>
 
-            {/* Informations complémentaires, notes et spécification particulière */}
             {(selectedMed.Information_complementaire || selectedMed.Notes || selectedMed["specification perticuliere "] || selectedMed["specification perticuliere"]) && (
               <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-sm space-y-3">
                 <div className="flex items-center gap-2 text-slate-800 font-bold mb-1">
@@ -243,7 +261,6 @@ export default function MedSearch() {
                 {selectedMed.Notes && (
                   <p className="text-slate-600"><strong className="text-slate-800">Notes :</strong> {selectedMed.Notes}</p>
                 )}
-                {/* On gère les deux variantes de clés (avec ou sans espace à la fin) */}
                 {(selectedMed["specification perticuliere "] || selectedMed["specification perticuliere"]) && (
                   <p className="text-slate-600"><strong className="text-slate-800">Spécification particulière :</strong> {selectedMed["specification perticuliere "] || selectedMed["specification perticuliere"]}</p>
                 )}
