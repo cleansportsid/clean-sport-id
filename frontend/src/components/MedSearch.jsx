@@ -54,20 +54,29 @@ export default function MedSearch() {
     e.preventDefault();
   };
 
+  // Filtrage assoupli pour accepter le singulier et le pluriel pour les conditions
   const filterList = (list) => {
     if (selectedStatusFilter === 'ALL') return list;
-    return list.filter(med => med.Status?.trim().toUpperCase() === selectedStatusFilter.toUpperCase());
+    return list.filter(med => {
+      const dbStatus = med.Status?.trim().toUpperCase() || '';
+      const filterVal = selectedStatusFilter.toUpperCase();
+      
+      if (filterVal === 'AUTORISE_SOUS_CONDITIONS') {
+        return dbStatus === 'AUTORISE_SOUS_CONDITIONS' || dbStatus === 'AUTORISE_SOUS_CONDITION';
+      }
+      return dbStatus === filterVal;
+    });
   };
 
   const filteredAuthorized = filterList(results.authorized);
   const filteredProhibited = filterList(results.prohibited);
 
-  // Fonction pour retourner le type de style selon le statut exact
+  // Fonction pour retourner le style selon le statut (gère le singulier et pluriel pour le jaune)
   const getStatusStyle = (status) => {
     if (!status) return 'red';
     const clean = status.trim().toUpperCase();
     if (clean === 'AUTORISE' || clean === 'AUTORISÉ') return 'green';
-    if (clean === 'AUTORISE_SOUS_CONDITIONS') return 'yellow';
+    if (clean === 'AUTORISE_SOUS_CONDITIONS' || clean === 'AUTORISE_SOUS_CONDITION') return 'yellow';
     return 'red'; // Tous les autres cas d'interdiction
   };
 
