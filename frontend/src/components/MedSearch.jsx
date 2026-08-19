@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
-import { Search, ArrowLeft, AlertCircle, CheckCircle2, Info, Loader2 } from 'lucide-react';
+import { Search, ArrowLeft, AlertCircle, CheckCircle2, Info, Loader2, X } from 'lucide-react';
 
 export default function MedSearch() {
   const [query, setQuery] = useState('');
@@ -9,10 +9,12 @@ export default function MedSearch() {
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   
-  // Utilisation d'un ref pour gérer le debounce (le délai)
+  // Nouveaux états pour le filtre et la modale de détail
+  const [selectedStatusFilter, setSelectedStatusFilter] = useState('ALL');
+  const [selectedMed, setSelectedMed] = useState(null);
+  
   const debounceTimeout = useRef(null);
 
-  // Fonction pour lancer la recherche
   const performSearch = async (searchQuery) => {
     if (!searchQuery.trim()) {
       setResults({ authorized: [], prohibited: [] });
@@ -33,44 +35,47 @@ export default function MedSearch() {
     }
   };
 
-  // useEffect se déclenche à chaque fois que "query" change (à chaque lettre tapée)
   useEffect(() => {
-    // On efface le timer précédent s'il y en a un
     if (debounceTimeout.current) {
       clearTimeout(debounceTimeout.current);
     }
 
-    // On crée un nouveau timer de 300ms
     debounceTimeout.current = setTimeout(() => {
       performSearch(query);
-    }, 300); // Attend 300ms après la dernière frappe avant de chercher
+    }, 300);
 
-    // Fonction de nettoyage (cleanup)
     return () => {
       if (debounceTimeout.current) {
         clearTimeout(debounceTimeout.current);
       }
     };
-  }, [query]); // Dépendance : on surveille "query"
+  }, [query]);
 
-  // On garde le handleSearch pour la soumission classique du formulaire (touche Entrée)
   const handleSearch = (e) => {
     e.preventDefault();
-    // La recherche se fait déjà via le useEffect, on empêche juste le rechargement de la page
   };
 
+  // Fonction utilitaire pour filtrer les tableaux selon le bouton sélectionné
+  const filterList = (list) => {
+    if (selectedStatusFilter === 'ALL') return list;
+    return list.filter(med => med.Status === selectedStatusFilter);
+  };
+
+  const filteredAuthorized = filterList(results.authorized);
+  const filteredProhibited = filterList(results.prohibited);
+
   return (
-    <div className="min-h-screen bg-slate-50 p-6 md:p-12 font-sans">
+    <div className="min-h-screen bg-slate-50 p-6 md:p-12 font-sans relative">
       <div className="max-w-4xl mx-auto">
         <Link to="/" className="inline-flex items-center text-blue-600 hover:text-blue-800 transition mb-8 font-medium">
           <ArrowLeft className="w-4 h-4 mr-2" /> Retour à l'accueil
         </Link>
         
-        <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-200 mb-10">
+        <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-200 mb-6">
           <h2 className="text-3xl font-extrabold text-slate-800 mb-2">Base de données Médicaments</h2>
-          <p className="text-slate-500 mb-8">Recherchez un médicament par son nom commercial ou sa DCI.</p>
+          <p className="text-slate-500 mb-6">Recherchez un médicament par son nom commercial ou sa DCI.</p>
           
-          <form onSubmit={handleSearch} className="relative flex items-center">
+          <form onSubmit={handleSearch} className="relative flex items-center mb-6">
             {loading ? (
                 <Loader2 className="absolute left-4 text-blue-500 w-6 h-6 animate-spin" />
             ) : (
@@ -83,62 +88,62 @@ export default function MedSearch() {
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Ex: Paracétamol, Salbutamol..." 
               className="w-full pl-14 pr-4 py-4 rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition outline-none text-slate-700 font-medium text-lg"
-              autoFocus // Met le curseur automatiquement dans le champ
+              autoFocus
             />
-            {/* J'ai supprimé le bouton "Rechercher" car il n'est plus nécessaire */}
           </form>
+
+          {/* Boutons de filtrage par statut */}
+          <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-100">
+            <span className="text-xs font-bold text-slate-400 self-center mr-2">Filtrer par :</span>
+            {[
+              { label: 'Tous', value: 'ALL' },
+              { label: 'Autorisé', value: 'AUTORISE' }, // Adapte selon les valeurs exactes de ta BDD (ex: 'AUTORISE')
+              { label: 'Interdit', value: 'INTERDIT' },
+              { label: 'Interdit Permanent', value: 'INTERDIT_PERMANENT' },
+              { label: 'Sous Conditions', value: 'AUTORISE_SOUS_CONDITIONS' }
+            ].map((filter) => (
+              <button
+                key={filter.value}
+                onClick={() => setSelectedStatusFilter(filter.value)}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition shadow-sm ${
+                  selectedStatusFilter === filter.value
+                    ? 'bg-blue-600 text-white shadow-blue-200'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                {filter.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="space-y-10">
           {/* Section Interdits */}
-          {results.prohibited.length > 0 && (
+          {filteredProhibited.length > 0 && (
             <div className="animate-fade-in-up">
               <div className="flex items-center gap-3 mb-6 border-b border-slate-200 pb-3">
                 <AlertCircle className="text-red-500 w-7 h-7" />
-                <h3 className="text-2xl font-bold text-slate-800">Interdits ({results.prohibited.length})</h3>
+                <h3 className="text-2xl font-bold text-slate-800">Interdits ({filteredProhibited.length})</h3>
               </div>
               <div className="grid gap-5 md:grid-cols-2">
-                {results.prohibited.map(med => (
-                  <div key={med._id} className="bg-white p-6 rounded-2xl border border-red-100 border-l-4 border-l-red-500 shadow-sm hover:shadow-md transition duration-200 flex flex-col">
+                {filteredProhibited.map(med => (
+                  <div 
+                    key={med._id} 
+                    onClick={() => setSelectedMed(med)}
+                    className="bg-white p-6 rounded-2xl border border-red-100 border-l-4 border-l-red-500 shadow-sm hover:shadow-md transition duration-200 flex flex-col cursor-pointer hover:border-red-300"
+                  >
                     <div className="flex-grow">
                         <h4 className="font-bold text-xl text-slate-800 mb-1">{med.Nom}</h4>
                         <div className="text-slate-500 text-sm mb-4 space-y-1">
                             <p>DCI: <span className="font-medium text-slate-700">{med.Dci}</span></p>
                             <p>Dose: <span className="font-medium text-slate-700">{med.Dose}</span></p>
                             <p>Voie: <span className="font-medium text-slate-700">{med.Voie}</span></p>
-                            <p>Forme: <span className="font-medium text-slate-700">{med.Forme}</span></p>
                         </div>
-                        <div className="inline-flex flex-wrap gap-2 items-center mb-4">
                         <span className="px-4 py-1.5 rounded-full text-xs font-bold bg-red-50 text-red-700 border border-red-100">
                             Status: {med.Status}
                         </span>
-                        {med.Classification && (
-                            <span className="px-4 py-1.5 rounded-full text-xs font-bold bg-orange-50 text-orange-700 border border-orange-100">
-                                {med.Classification}
-                            </span>
-                        )}
-                        </div>
-
-                        {/* Affichage conditionnel des informations supplémentaires */}
-                        {(med.Information_complementaire || med.Notes || med["specification perticuliere"]) && (
-                            <div className="mt-4 bg-slate-50 p-4 rounded-xl border border-slate-200 text-sm text-slate-700 space-y-2">
-                                <div className="flex items-center gap-2 mb-2 text-slate-800 font-semibold">
-                                    <Info className="w-4 h-4 text-blue-500" />
-                                    <span>Informations Importantes</span>
-                                </div>
-                                
-                                {med.Information_complementaire && (
-                                    <p><span className="font-semibold text-slate-900">Info. complémentaire : </span>{med.Information_complementaire}</p>
-                                )}
-                                {med.Notes && (
-                                    <p><span className="font-semibold text-slate-900">Notes : </span>{med.Notes}</p>
-                                )}
-                                {med["specification perticuliere"] && (
-                                    <p><span className="font-semibold text-slate-900">Spécification particulière : </span>{med["specification perticuliere"]}</p>
-                                )}
-                            </div>
-                        )}
                     </div>
+                    <p className="text-xs text-blue-600 font-semibold mt-4 text-right">Cliquer pour voir les détails &rarr;</p>
                   </div>
                 ))}
               </div>
@@ -146,40 +151,102 @@ export default function MedSearch() {
           )}
 
           {/* Section Autorisés */}
-          {results.authorized.length > 0 && (
+          {filteredAuthorized.length > 0 && (
             <div className="animate-fade-in-up">
               <div className="flex items-center gap-3 mb-6 border-b border-slate-200 pb-3">
                 <CheckCircle2 className="text-emerald-500 w-7 h-7" />
-                <h3 className="text-2xl font-bold text-slate-800">Autorisés ({results.authorized.length})</h3>
+                <h3 className="text-2xl font-bold text-slate-800">Autorisés ({filteredAuthorized.length})</h3>
               </div>
               <div className="grid gap-5 md:grid-cols-2">
-                {results.authorized.map(med => (
-                  <div key={med._id} className="bg-white p-6 rounded-2xl border border-emerald-100 border-l-4 border-l-emerald-500 shadow-sm hover:shadow-md transition duration-200 flex flex-col">
+                {filteredAuthorized.map(med => (
+                  <div 
+                    key={med._id} 
+                    onClick={() => setSelectedMed(med)}
+                    className="bg-white p-6 rounded-2xl border border-emerald-100 border-l-4 border-l-emerald-500 shadow-sm hover:shadow-md transition duration-200 flex flex-col cursor-pointer hover:border-emerald-300"
+                  >
                     <div className="flex-grow">
                         <h4 className="font-bold text-xl text-slate-800 mb-1">{med.Nom}</h4>
                         <div className="text-slate-500 text-sm mb-4 space-y-1">
-                            <p>DCI: <span className="font-medium text-slate-700">{med.DCI}</span></p>
+                            <p>DCI: <span className="font-medium text-slate-700">{med.DCI || med.Dci}</span></p>
                             <p>Dose: <span className="font-medium text-slate-700">{med.Dose}</span></p>
                             <p>Forme: <span className="font-medium text-slate-700">{med.Forme}</span></p>
                         </div>
-                        <div className="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-100">
-                        {med.Status}
-                        </div>
+                        <span className="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-100">
+                          {med.Status}
+                        </span>
                     </div>
+                    <p className="text-xs text-blue-600 font-semibold mt-4 text-right">Cliquer pour voir les détails &rarr;</p>
                   </div>
                 ))}
               </div>
             </div>
           )}
           
-          {!loading && hasSearched && query && results.authorized.length === 0 && results.prohibited.length === 0 && (
+          {!loading && hasSearched && query && filteredAuthorized.length === 0 && filteredProhibited.length === 0 && (
             <div className="text-center py-16 bg-white rounded-3xl border border-slate-200 shadow-sm">
-              <p className="text-slate-500 text-lg">Aucun résultat trouvé pour <span className="font-bold text-slate-700">"{query}"</span>.</p>
-              <p className="text-slate-400 mt-2 text-sm">Vérifiez l'orthographe ou essayez un autre terme.</p>
+              <p className="text-slate-500 text-lg">Aucun résultat ne correspond à ce filtre pour <span className="font-bold text-slate-700">"{query}"</span>.</p>
             </div>
           )}
         </div>
       </div>
+
+      {/* MODALE DE DÉTAIL DU MÉDICAMENT */}
+      {selectedMed && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-8 shadow-2xl border border-slate-100 relative max-h-[90vh] overflow-y-auto">
+            <button 
+              onClick={() => setSelectedMed(null)}
+              className="absolute top-6 right-6 text-slate-400 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 p-2 rounded-full transition"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <span className={`inline-block px-4 py-1 rounded-full text-xs font-bold mb-4 ${
+              selectedMed.Status?.includes('INTERDIT') ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+            }`}>
+              {selectedMed.Status}
+            </span>
+
+            <h3 className="text-2xl font-extrabold text-slate-900 mb-2">{selectedMed.Nom}</h3>
+            
+            <div className="space-y-3 text-slate-600 text-sm mb-6 border-b border-slate-100 pb-6">
+              <p><span className="font-semibold text-slate-800">DCI :</span> {selectedMed.Dci || selectedMed.DCI || 'Non renseigné'}</p>
+              <p><span className="font-semibold text-slate-800">Dose :</span> {selectedMed.Dose || 'Non renseigné'}</p>
+              <p><span className="font-semibold text-slate-800">Voie :</span> {selectedMed.Voie || 'Non renseigné'}</p>
+              <p><span className="font-semibold text-slate-800">Forme :</span> {selectedMed.Forme || 'Non renseigné'}</p>
+              {selectedMed.Classification && (
+                <p><span className="font-semibold text-slate-800">Classification :</span> {selectedMed.Classification}</p>
+              )}
+            </div>
+
+            {/* Informations complémentaires ou notes */}
+            {(selectedMed.Information_complementaire || selectedMed.Notes || selectedMed["specification perticuliere"]) && (
+              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-sm space-y-2">
+                <div className="flex items-center gap-2 text-slate-800 font-bold mb-1">
+                  <Info className="w-4 h-4 text-blue-600" />
+                  <span>Détails & Précisions</span>
+                </div>
+                {selectedMed.Information_complementaire && (
+                  <p className="text-slate-600"><strong className="text-slate-800">Info :</strong> {selectedMed.Information_complementaire}</p>
+                )}
+                {selectedMed.Notes && (
+                  <p className="text-slate-600"><strong className="text-slate-800">Notes :</strong> {selectedMed.Notes}</p>
+                )}
+                {selectedMed["specification perticuliere"] && (
+                  <p className="text-slate-600"><strong className="text-slate-800">Spécification :</strong> {selectedMed["specification perticuliere"]}</p>
+                )}
+              </div>
+            )}
+
+            <button 
+              onClick={() => setSelectedMed(null)}
+              className="w-full mt-8 py-3 bg-slate-900 text-white font-semibold rounded-2xl hover:bg-slate-800 transition shadow-lg shadow-slate-900/10"
+            >
+              Fermer
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
