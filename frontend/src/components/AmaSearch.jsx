@@ -9,9 +9,7 @@ export default function AmaSearch() {
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   
-  // État pour gérer la substance sélectionnée pour la modale
   const [selectedSubstance, setSelectedSubstance] = useState(null);
-  
   const debounceTimeout = useRef(null);
 
   const performSearch = async (searchQuery) => {
@@ -128,7 +126,6 @@ export default function AmaSearch() {
         </div>
       </div>
 
-      {/* MODALE DE DÉTAIL DE LA SUBSTANCE AMA */}
       {selectedSubstance && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
           <div className="bg-white rounded-3xl max-w-lg w-full p-8 shadow-2xl border border-slate-100 relative max-h-[90vh] overflow-y-auto">

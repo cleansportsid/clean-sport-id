@@ -1,8 +1,26 @@
+
 const express = require('express');
 const router = express.Router();
 const AmaSubstance = require('../models/AmaSubstance');
 const MedicationAuthorized = require('../models/MedicationAuthorized');
 const MedicationProhibited = require('../models/MedicationProhibited');
+
+// Fonction pour rendre la recherche tolérante aux accents
+const escapeRegex = (text) => {
+  return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+};
+
+const getAccentInsensitiveRegex = (query) => {
+  const sanitized = escapeRegex(query)
+    .replace(/[éèêëÉÈÊË]/g, '[eéèêëÉÈÊË]')
+    .replace(/[àâäÀÂÄ]/g, '[aàâäÀÂÄ]')
+    .replace(/[ùûüÙÛÜ]/g, '[uùûüÙÛÜ]')
+    .replace(/[îïÎÏ]/g, '[iîïÎÏ]')
+    .replace(/[ôöÔÖ]/g, '[oôöÔÖ]')
+    .replace(/[çÇ]/g, '[cçÇ]');
+  
+  return new RegExp(sanitized, 'i'); // 'i' pour insensible à la casse
+};
 
 // Moteur 1 : Médicaments (Recherche dans les 2 collections)
 router.get('/medications', async (req, res) => {
@@ -10,7 +28,7 @@ router.get('/medications', async (req, res) => {
     const { q } = req.query;
     if (!q) return res.json({ authorized: [], prohibited: [] });
 
-    const regex = new RegExp(q, 'i'); // Recherche insensible à la casse
+    const regex = getAccentInsensitiveRegex(q);
     
     // Recherche en parallèle dans les deux collections
     const [authorized, prohibited] = await Promise.all([
@@ -30,7 +48,7 @@ router.get('/ama', async (req, res) => {
     const { q } = req.query;
     if (!q) return res.json([]);
 
-    const regex = new RegExp(q, 'i');
+    const regex = getAccentInsensitiveRegex(q);
     const substances = await AmaSubstance.find({ DCI: regex }).limit(50);
     
     res.json(substances);

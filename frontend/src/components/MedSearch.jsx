@@ -9,7 +9,6 @@ export default function MedSearch() {
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   
-  // Nouveaux états pour le filtre et la modale de détail
   const [selectedStatusFilter, setSelectedStatusFilter] = useState('ALL');
   const [selectedMed, setSelectedMed] = useState(null);
   
@@ -55,7 +54,6 @@ export default function MedSearch() {
     e.preventDefault();
   };
 
-  // Fonction utilitaire pour filtrer les tableaux selon le bouton sélectionné
   const filterList = (list) => {
     if (selectedStatusFilter === 'ALL') return list;
     return list.filter(med => med.Status === selectedStatusFilter);
@@ -92,12 +90,11 @@ export default function MedSearch() {
             />
           </form>
 
-          {/* Boutons de filtrage par statut */}
           <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-100">
             <span className="text-xs font-bold text-slate-400 self-center mr-2">Filtrer par :</span>
             {[
               { label: 'Tous', value: 'ALL' },
-              { label: 'Autorisé', value: 'AUTORISE' }, // Adapte selon les valeurs exactes de ta BDD (ex: 'AUTORISE')
+              { label: 'Autorisé', value: 'AUTORISE' },
               { label: 'Interdit', value: 'INTERDIT' },
               { label: 'Interdit Permanent', value: 'INTERDIT_PERMANENT' },
               { label: 'Sous Conditions', value: 'AUTORISE_SOUS_CONDITIONS' }
@@ -118,7 +115,6 @@ export default function MedSearch() {
         </div>
 
         <div className="space-y-10">
-          {/* Section Interdits */}
           {filteredProhibited.length > 0 && (
             <div className="animate-fade-in-up">
               <div className="flex items-center gap-3 mb-6 border-b border-slate-200 pb-3">
@@ -150,7 +146,6 @@ export default function MedSearch() {
             </div>
           )}
 
-          {/* Section Autorisés */}
           {filteredAuthorized.length > 0 && (
             <div className="animate-fade-in-up">
               <div className="flex items-center gap-3 mb-6 border-b border-slate-200 pb-3">
@@ -190,7 +185,6 @@ export default function MedSearch() {
         </div>
       </div>
 
-      {/* MODALE DE DÉTAIL DU MÉDICAMENT */}
       {selectedMed && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
           <div className="bg-white rounded-3xl max-w-lg w-full p-8 shadow-2xl border border-slate-100 relative max-h-[90vh] overflow-y-auto">
@@ -219,7 +213,6 @@ export default function MedSearch() {
               )}
             </div>
 
-            {/* Informations complémentaires ou notes */}
             {(selectedMed.Information_complementaire || selectedMed.Notes || selectedMed["specification perticuliere"]) && (
               <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-sm space-y-2">
                 <div className="flex items-center gap-2 text-slate-800 font-bold mb-1">
