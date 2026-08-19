@@ -9,7 +9,6 @@ export default function MedSearch() {
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   
-  // État pour les 6 filtres de statut
   const [selectedStatusFilter, setSelectedStatusFilter] = useState('ALL');
   const [selectedMed, setSelectedMed] = useState(null);
   
@@ -55,7 +54,6 @@ export default function MedSearch() {
     e.preventDefault();
   };
 
-  // Filtrage selon les 6 statuts
   const filterList = (list) => {
     if (selectedStatusFilter === 'ALL') return list;
     return list.filter(med => med.Status?.trim().toUpperCase() === selectedStatusFilter.toUpperCase());
@@ -64,11 +62,9 @@ export default function MedSearch() {
   const filteredAuthorized = filterList(results.authorized);
   const filteredProhibited = filterList(results.prohibited);
 
-  // Fonction pour déterminer si un statut doit être vert ou rouge
   const isAuthorizedStatus = (status) => {
     if (!status) return false;
     const cleanStatus = status.trim().toUpperCase();
-    // Seul "AUTORISE" (ou équivalent strict sans condition) est vert
     return cleanStatus === 'AUTORISE' || cleanStatus === 'AUTORISÉ';
   };
 
@@ -128,7 +124,6 @@ export default function MedSearch() {
         </div>
 
         <div className="space-y-10">
-          {/* Section Interdits / Autres cas rouges */}
           {filteredProhibited.length > 0 && (
             <div className="animate-fade-in-up">
               <div className="flex items-center gap-3 mb-6 border-b border-slate-200 pb-3">
@@ -167,7 +162,6 @@ export default function MedSearch() {
             </div>
           )}
 
-          {/* Section Autorisés (verts) */}
           {filteredAuthorized.length > 0 && (
             <div className="animate-fade-in-up">
               <div className="flex items-center gap-3 mb-6 border-b border-slate-200 pb-3">
@@ -236,8 +230,9 @@ export default function MedSearch() {
               )}
             </div>
 
-            {(selectedMed.Information_complementaire || selectedMed.Notes || selectedMed["specification perticuliere"]) && (
-              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-sm space-y-2">
+            {/* Informations complémentaires, notes et spécification particulière */}
+            {(selectedMed.Information_complementaire || selectedMed.Notes || selectedMed["specification perticuliere "] || selectedMed["specification perticuliere"]) && (
+              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-sm space-y-3">
                 <div className="flex items-center gap-2 text-slate-800 font-bold mb-1">
                   <Info className="w-4 h-4 text-blue-600" />
                   <span>Détails & Précisions</span>
@@ -248,8 +243,9 @@ export default function MedSearch() {
                 {selectedMed.Notes && (
                   <p className="text-slate-600"><strong className="text-slate-800">Notes :</strong> {selectedMed.Notes}</p>
                 )}
-                {selectedMed["specification perticuliere"] && (
-                  <p className="text-slate-600"><strong className="text-slate-800">Spécification :</strong> {selectedMed["specification perticuliere"]}</p>
+                {/* On gère les deux variantes de clés (avec ou sans espace à la fin) */}
+                {(selectedMed["specification perticuliere "] || selectedMed["specification perticuliere"]) && (
+                  <p className="text-slate-600"><strong className="text-slate-800">Spécification particulière :</strong> {selectedMed["specification perticuliere "] || selectedMed["specification perticuliere"]}</p>
                 )}
               </div>
             )}
