@@ -17,11 +17,18 @@ mongoose.connect(process.env.MONGO_URI)
   .catch(err => console.error('❌ Erreur de connexion MongoDB :', err));
 
 // Configuration de Nodemailer pour l'envoi d'e-mails
+// Nouvelle configuration explicite
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: 'smtp.gmail.com',
+  port: 465, // Port sécurisé SSL de Gmail
+  secure: true, // true pour le port 465
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
+  },
+  tls: {
+    // Ne rejette pas la connexion si le certificat serveur a un souci mineur (très utile sur les hébergeurs gratuits)
+    rejectUnauthorized: false
   }
 });
 
