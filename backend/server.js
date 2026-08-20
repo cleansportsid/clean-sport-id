@@ -1,7 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const nodemailer = require('nodemailer');
 require('dotenv').config();
 
 const searchRoutes = require('./routes/search');
@@ -16,27 +15,8 @@ mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('✅ MongoDB connecté avec succès à la base "medicaments" !'))
   .catch(err => console.error('❌ Erreur de connexion MongoDB :', err));
 
-// Configuration de Nodemailer pour l'envoi d'e-mails
-// Nouvelle configuration explicite
-// Configuration de Nodemailer pour l'envoi d'e-mails
-const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 465, 
-  secure: true, 
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  },
-  tls: {
-    rejectUnauthorized: false
-  },
-  // NOUVEAU : Force Node.js à utiliser une adresse IPv4 classique
-  family: 4 
-});
-
-// Route pour l'envoi du message de contact / signalement
+// Route pour l'envoi du message de contact via l'API Resend (sans Nodemailer)
 app.post('/api/contact', async (req, res) => {
-  // Optionnel : affiche les données reçues dans le terminal pour débugger
   console.log("Nouvelle requête de contact :", req.body);
 
   const { firstName, lastName, role, specialty, subject, email, message } = req.body;
@@ -65,19 +45,32 @@ ${message}
   `;
 
   try {
-    const mailOptions = {
-      from: process.env.EMAIL_USER, // L'e-mail est envoyé depuis ton compte
-      replyTo: email,               // Permet de répondre directement à l'expéditeur
-      to: process.env.EMAIL_USER,   // Tu le reçois sur ton compte
-      subject: `[Clean Sport ID] ${subject || "Nouveau message de contact"}`,
-      text: emailText
-    };
+    // Utilisation de l'API HTTP de Resend pour contourner le blocage SMTP de Render
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        from: 'onboarding@resend.dev', // Adresse spéciale de test fournie par Resend
+        to: process.env.EMAIL_USER,    // Ton adresse supportcleansportsid@gmail.com
+        reply_to: email,               // Permet de répondre directement à l'utilisateur
+        subject: `[Clean Sport ID] ${subject || "Nouveau message de contact"}`,
+        text: emailText
+      })
+    });
 
-    await transporter.sendMail(mailOptions);
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("Erreur API Resend :", errorData);
+      return res.status(500).json({ error: "Erreur lors de l'envoi via l'API" });
+    }
+
     res.status(200).json({ success: true, message: "E-mail envoyé avec succès" });
   } catch (error) {
-    console.error("Erreur lors de l'envoi de l'e-mail :", error);
-    res.status(500).json({ error: "Erreur lors de l'envoi de l'e-mail" });
+    console.error("Erreur serveur globale :", error);
+    res.status(500).json({ error: "Erreur serveur lors de l'envoi" });
   }
 });
 
