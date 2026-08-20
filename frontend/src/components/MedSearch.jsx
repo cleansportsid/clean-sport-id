@@ -2,8 +2,10 @@ import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import { Search, ArrowLeft, AlertCircle, CheckCircle2, Info, Loader2, X } from 'lucide-react';
+import { translations } from '../translations';
 
-export default function MedSearch() {
+export default function MedSearch({ currentLang = 'fr' }) {
+  const t = translations[currentLang];
   const [query, setQuery] = useState('');
   const [results, setResults] = useState({ authorized: [], prohibited: [] });
   const [loading, setLoading] = useState(false);
@@ -54,7 +56,6 @@ export default function MedSearch() {
     e.preventDefault();
   };
 
-  // Filtrage assoupli pour accepter le singulier et le pluriel pour les conditions
   const filterList = (list) => {
     if (selectedStatusFilter === 'ALL') return list;
     return list.filter(med => {
@@ -71,25 +72,24 @@ export default function MedSearch() {
   const filteredAuthorized = filterList(results.authorized);
   const filteredProhibited = filterList(results.prohibited);
 
-  // Fonction pour retourner le style selon le statut (gère le singulier et pluriel pour le jaune)
   const getStatusStyle = (status) => {
     if (!status) return 'red';
     const clean = status.trim().toUpperCase();
     if (clean === 'AUTORISE' || clean === 'AUTORISÉ') return 'green';
     if (clean === 'AUTORISE_SOUS_CONDITIONS' || clean === 'AUTORISE_SOUS_CONDITION') return 'yellow';
-    return 'red'; // Tous les autres cas d'interdiction
+    return 'red';
   };
 
   return (
     <div className="min-h-screen bg-slate-50 p-6 md:p-12 font-sans relative">
       <div className="max-w-4xl mx-auto">
         <Link to="/" className="inline-flex items-center text-blue-600 hover:text-blue-800 transition mb-8 font-medium">
-          <ArrowLeft className="w-4 h-4 mr-2" /> Retour à l'accueil
+          <ArrowLeft className="w-4 h-4 mr-2" /> {t.backToHome}
         </Link>
         
         <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-200 mb-6">
-          <h2 className="text-3xl font-extrabold text-slate-800 mb-2">Base de données Médicaments</h2>
-          <p className="text-slate-500 mb-6">Recherchez un médicament par son nom commercial ou sa DCI.</p>
+          <h2 className="text-3xl font-extrabold text-slate-800 mb-2">{t.medHeading}</h2>
+          <p className="text-slate-500 mb-6">{t.medSubheading}</p>
           
           <form onSubmit={handleSearch} className="relative flex items-center mb-6">
             {loading ? (
@@ -108,7 +108,6 @@ export default function MedSearch() {
             />
           </form>
 
-          {/* Boutons de filtrage pour les 6 cas */}
           <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-100">
             <span className="text-xs font-bold text-slate-400 self-center mr-2">Filtrer par :</span>
             {[
@@ -146,7 +145,6 @@ export default function MedSearch() {
                 {filteredProhibited.map(med => {
                   const statusType = getStatusStyle(med.Status);
                   
-                  // Configuration dynamique des classes selon le type (green, yellow, red)
                   let borderClass = 'border-red-100 border-l-4 border-l-red-500 hover:border-red-300';
                   let badgeClass = 'bg-red-50 text-red-700 border-red-100';
 
@@ -222,7 +220,6 @@ export default function MedSearch() {
         </div>
       </div>
 
-      {/* MODALE DE DÉTAIL DU MÉDICAMENT */}
       {selectedMed && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
           <div className="bg-white rounded-3xl max-w-lg w-full p-8 shadow-2xl border border-slate-100 relative max-h-[90vh] overflow-y-auto">

@@ -2,8 +2,10 @@ import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import { Search, ArrowLeft, TriangleAlert, Info, Loader2, X } from 'lucide-react';
+import { translations } from '../translations';
 
-export default function AmaSearch() {
+export default function AmaSearch({ currentLang = 'fr' }) {
+  const t = translations[currentLang];
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -56,12 +58,12 @@ export default function AmaSearch() {
     <div className="min-h-screen bg-slate-50 p-6 md:p-12 font-sans relative">
       <div className="max-w-4xl mx-auto">
         <Link to="/" className="inline-flex items-center text-purple-600 hover:text-purple-800 transition mb-8 font-medium">
-          <ArrowLeft className="w-4 h-4 mr-2" /> Retour à l'accueil
+          <ArrowLeft className="w-4 h-4 mr-2" /> {t.backToHome}
         </Link>
         
         <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-200 mb-10">
-          <h2 className="text-3xl font-extrabold text-slate-800 mb-2">Substances Interdites AMA</h2>
-          <p className="text-slate-500 mb-8">Vérifiez si une substance figure sur la liste de l'Agence Mondiale Antidopage.</p>
+          <h2 className="text-3xl font-extrabold text-slate-800 mb-2">{t.amaHeading}</h2>
+          <p className="text-slate-500 mb-8">{t.amaSubheading}</p>
           
           <form onSubmit={handleSearch} className="relative flex items-center">
             {loading ? (
