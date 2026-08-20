@@ -18,18 +18,20 @@ mongoose.connect(process.env.MONGO_URI)
 
 // Configuration de Nodemailer pour l'envoi d'e-mails
 // Nouvelle configuration explicite
+// Configuration de Nodemailer pour l'envoi d'e-mails
 const transporter = nodemailer.createTransport({
   host: 'smtp.gmail.com',
-  port: 465, // Port sécurisé SSL de Gmail
-  secure: true, // true pour le port 465
+  port: 465, 
+  secure: true, 
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
   },
   tls: {
-    // Ne rejette pas la connexion si le certificat serveur a un souci mineur (très utile sur les hébergeurs gratuits)
     rejectUnauthorized: false
-  }
+  },
+  // NOUVEAU : Force Node.js à utiliser une adresse IPv4 classique
+  family: 4 
 });
 
 // Route pour l'envoi du message de contact / signalement
