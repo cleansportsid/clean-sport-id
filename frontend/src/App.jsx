@@ -18,7 +18,7 @@ function Home({ showWarning, setShowWarning, accepted, setAccepted, refused, set
           <ShieldX className="w-16 h-16 text-red-500 mx-auto mb-6" />
           <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-3">{t.restrictedAccess}</h2>
           <p className="text-slate-600 dark:text-slate-300 mb-8 text-sm md:text-base">{t.restrictedText}</p>
-          <button onClick={() => { setRefused(false); setPendingRoute(null); }} className="bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 px-6 py-3 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition font-medium w-full">
+          <button onClick={() => { setRefused(false); setPendingRoute(null); }} className="bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 px-6 py-3 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition font-medium w-full cursor-pointer">
             {t.backHome}
           </button>
         </div>
@@ -50,7 +50,7 @@ function Home({ showWarning, setShowWarning, accepted, setAccepted, refused, set
           </p>
           
           <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <button onClick={() => { setShowWarning(false); setRefused(true); }} className="px-6 md:px-8 py-3 border-2 border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 font-bold rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition w-full sm:w-auto text-sm md:text-base">
+            <button onClick={() => { setShowWarning(false); setRefused(true); }} className="px-6 md:px-8 py-3 border-2 border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 font-bold rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition w-full sm:w-auto text-sm md:text-base cursor-pointer">
               {t.refuseBtn}
             </button>
             <button 
@@ -63,7 +63,7 @@ function Home({ showWarning, setShowWarning, accepted, setAccepted, refused, set
                 }
               }} 
               style={{ backgroundColor: '#00bcd4' }}
-              className="px-6 md:px-8 py-3 text-white font-bold rounded-xl hover:opacity-90 transition shadow-md w-full sm:w-auto text-sm md:text-base"
+              className="px-6 md:px-8 py-3 text-white font-bold rounded-xl hover:opacity-90 transition shadow-md w-full sm:w-auto text-sm md:text-base cursor-pointer"
             >
               {t.acceptBtn}
             </button>
@@ -89,10 +89,16 @@ function Home({ showWarning, setShowWarning, accepted, setAccepted, refused, set
           
           <button 
             onClick={() => setShowWarning(true)}
-            style={{ backgroundColor: '#0f172a' }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#00bcd4'}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#0f172a'}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-3 text-white font-bold px-8 py-4 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 text-base md:text-lg group cursor-pointer"
+            style={{ 
+              backgroundColor: isDarkMode ? '#00bcd4' : '#0f172a' 
+            }}
+            onMouseEnter={(e) => {
+              if (!isDarkMode) e.currentTarget.style.backgroundColor = '#00bcd4';
+            }}
+            onMouseLeave={(e) => {
+              if (!isDarkMode) e.currentTarget.style.backgroundColor = '#0f172a';
+            }}
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-3 text-white font-bold px-8 py-4 rounded-2xl shadow-lg hover:opacity-90 hover:shadow-cyan-500/20 transition-all duration-300 text-base md:text-lg group cursor-pointer"
           >
             <span>{t.start}</span>
             <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
