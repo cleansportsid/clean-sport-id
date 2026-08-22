@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Mail, Phone, MapPin, Send, Loader2, CheckCircle2 } from 'lucide-react';
+import { Mail, Phone, MapPin, Send, Loader2, CheckCircle2, Download, Smartphone } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 import { translations } from '../translations';
 import axios from 'axios';
 
@@ -18,6 +19,10 @@ export default function Footer({ hasAccepted, onTriggerWarning, onResetHome, cur
   const [error, setError] = useState(false);
 
   const t = translations[currentLang];
+
+  // URL dynamique : s'adapte automatiquement au domaine de production sur Render
+  const baseUrl = import.meta.env.VITE_APP_URL || window.location.origin;
+  const apkDownloadUrl = `${baseUrl}/app-release.apk`;
 
   const handleNavClick = (e, path) => {
     if (path === '/') {
@@ -59,14 +64,13 @@ export default function Footer({ hasAccepted, onTriggerWarning, onResetHome, cur
 
   return (
     <footer className="bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 pt-12 md:pt-16 pb-8 border-t border-slate-200 dark:border-slate-800 mt-auto transition-colors duration-300" dir={currentLang === 'ar' ? 'rtl' : 'ltr'}>
-      <div className="max-w-6xl mx-auto px-4 md:px-6 grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10 mb-12">
-        <div>
+      <div className="max-w-6xl mx-auto px-4 md:px-6 grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-8 mb-12">
+        
+        {/* Colonne 1 : Logo & Description */}
+        <div className="md:col-span-1">
           <div className="mb-4">
             <Link to="/" onClick={(e) => handleNavClick(e, '/')}>
-              {/* Logo Mobile */}
               <img src="/icon.png" alt="Logo Mobile" className="block sm:hidden h-12 object-contain" />
-              
-              {/* Logo Desktop : bascule selon le mode sombre / lumineux */}
               <img 
                 src={isDarkMode ? "/logosombre.png" : "/favicon.png"} 
                 alt="Logo Desktop" 
@@ -79,6 +83,7 @@ export default function Footer({ hasAccepted, onTriggerWarning, onResetHome, cur
           </p>
         </div>
 
+        {/* Colonne 2 : Navigation */}
         <div>
           <h3 className="text-slate-900 dark:text-white font-bold text-base mb-4">{t.footerNav}</h3>
           <ul className="space-y-2 text-sm">
@@ -88,6 +93,37 @@ export default function Footer({ hasAccepted, onTriggerWarning, onResetHome, cur
           </ul>
         </div>
 
+        {/* Colonne 3 : Application Mobile (QR Code & Téléchargement APK) */}
+        <div className="flex flex-col items-start">
+          <h3 className="text-slate-900 dark:text-white font-bold text-base mb-4 flex items-center gap-2">
+            <Smartphone className="w-5 h-5 text-[#00bcd4]" />
+            Application Mobile
+          </h3>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
+            Scannez pour télécharger l'application Android (.APK) :
+          </p>
+          
+          <div className="p-2.5 bg-white rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm mb-3">
+            <QRCodeSVG 
+              value={apkDownloadUrl} 
+              size={110} 
+              level="H" 
+              includeMargin={false}
+              fgColor="#0f172a"
+            />
+          </div>
+
+          <a 
+            href={apkDownloadUrl} 
+            download
+            className="inline-flex items-center gap-2 px-3 py-2 text-xs font-semibold rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-[#00bcd4] dark:hover:bg-[#00bcd4] text-slate-700 dark:text-slate-200 hover:text-white transition-all duration-300 border border-slate-200 dark:border-slate-700"
+          >
+            <Download className="w-4 h-4" />
+            Télécharger APK
+          </a>
+        </div>
+
+        {/* Colonne 4 : Formulaire de Contact */}
         <div>
           <h3 className="text-slate-900 dark:text-white font-bold text-base mb-4">{t.footerContactTitle || "Contact / Signalement"}</h3>
           
