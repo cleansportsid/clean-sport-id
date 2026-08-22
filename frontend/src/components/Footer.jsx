@@ -191,8 +191,18 @@ export default function Footer({ hasAccepted, onTriggerWarning, onResetHome, cur
             />
             
             <button 
-              type="submit" disabled={sending} style={{ backgroundColor: '#0f172a' }}
-              className="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 text-xs font-bold text-white rounded-xl hover:bg-[#00bcd4] dark:bg-slate-800 dark:hover:bg-[#00bcd4] transition shadow-sm cursor-pointer"
+              type="submit" 
+              disabled={sending} 
+              style={{ 
+                backgroundColor: isDarkMode ? '#00bcd4' : '#0f172a' 
+              }}
+              onMouseEnter={(e) => {
+                if (!isDarkMode) e.currentTarget.style.backgroundColor = '#00bcd4';
+              }}
+              onMouseLeave={(e) => {
+                if (!isDarkMode) e.currentTarget.style.backgroundColor = '#0f172a';
+              }}
+              className="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 text-xs font-bold text-white rounded-xl hover:opacity-90 transition-all duration-300 shadow-sm cursor-pointer disabled:opacity-50"
             >
               {sending ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
