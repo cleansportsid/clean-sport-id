@@ -4,7 +4,7 @@ import { Mail, Phone, MapPin, Send, Loader2, CheckCircle2 } from 'lucide-react';
 import { translations } from '../translations';
 import axios from 'axios';
 
-export default function Footer({ hasAccepted, onTriggerWarning, onResetHome, currentLang }) {
+export default function Footer({ hasAccepted, onTriggerWarning, onResetHome, currentLang, isDarkMode }) {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [role, setRole] = useState('');
@@ -63,8 +63,15 @@ export default function Footer({ hasAccepted, onTriggerWarning, onResetHome, cur
         <div>
           <div className="mb-4">
             <Link to="/" onClick={(e) => handleNavClick(e, '/')}>
+              {/* Logo Mobile */}
               <img src="/icon.png" alt="Logo Mobile" className="block sm:hidden h-12 object-contain" />
-              <img src="/favicon.png" alt="Logo Desktop" className="hidden sm:block h-14 object-contain" />
+              
+              {/* Logo Desktop : bascule selon le mode sombre / lumineux */}
+              <img 
+                src={isDarkMode ? "/logosombre.png" : "/favicon.png"} 
+                alt="Logo Desktop" 
+                className="hidden sm:block h-14 object-contain" 
+              />
             </Link>
           </div>
           <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">

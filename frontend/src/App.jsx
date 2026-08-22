@@ -7,7 +7,7 @@ import Footer from './components/Footer';
 import { AlertTriangle, ShieldCheck, ShieldX, Info, ArrowRight } from 'lucide-react';
 import { translations } from './translations';
 
-function Home({ showWarning, setShowWarning, accepted, setAccepted, refused, setRefused, pendingRoute, setPendingRoute, currentLang }) {
+function Home({ showWarning, setShowWarning, accepted, setAccepted, refused, setRefused, pendingRoute, setPendingRoute, currentLang, isDarkMode }) {
   const navigate = useNavigate();
   const t = translations[currentLang];
 
@@ -32,7 +32,7 @@ function Home({ showWarning, setShowWarning, accepted, setAccepted, refused, set
         <div className="bg-white dark:bg-slate-800 p-6 md:p-12 rounded-3xl shadow-xl max-w-2xl text-center border border-slate-100 dark:border-slate-700 transition-colors duration-300">
           <div className="mx-auto mb-6 flex justify-center">
             <img src="/icon.png" alt="Clean Sport ID Logo Mobile" className="block sm:hidden h-16 md:h-20 object-contain" />
-            <img src="/favicon.png" alt="Clean Sport ID Logo Desktop" className="hidden sm:block h-16 md:h-20 object-contain" />
+            <img src={isDarkMode ? "/logosombre.png" : "/favicon.png"} alt="Clean Sport ID Logo Desktop" className="hidden sm:block h-16 md:h-20 object-contain" />
           </div>
           
           <div className="bg-amber-50 dark:bg-amber-900/20 text-amber-800 dark:text-amber-200 p-4 rounded-xl mb-6 flex items-start gap-4 text-left border border-amber-200 dark:border-amber-700/50 transition-colors">
@@ -163,7 +163,7 @@ function App() {
   const [currentLang, setCurrentLang] = useState('fr');
   const navigate = useNavigate();
 
-  // NOUVEAU : État pour le mode sombre persistant
+  // État pour le mode sombre persistant
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const saved = localStorage.getItem('theme');
     if (saved) return saved === 'dark';
@@ -207,12 +207,18 @@ function App() {
       />
       <main className="flex-grow flex flex-col">
         <Routes>
-          <Route path="/" element={<Home showWarning={showWarning} setShowWarning={setShowWarning} accepted={accepted} setAccepted={setAccepted} refused={refused} setRefused={setRefused} pendingRoute={pendingRoute} setPendingRoute={setPendingRoute} currentLang={currentLang} />} />
-          <Route path="/medications" element={accepted ? <MedSearch currentLang={currentLang} /> : <Home showWarning={true} setShowWarning={setShowWarning} accepted={accepted} setAccepted={setAccepted} refused={refused} setRefused={setRefused} pendingRoute="/medications" setPendingRoute={setPendingRoute} currentLang={currentLang} />} />
-          <Route path="/ama" element={accepted ? <AmaSearch currentLang={currentLang} /> : <Home showWarning={true} setShowWarning={setShowWarning} accepted={accepted} setAccepted={setAccepted} refused={refused} setRefused={setRefused} pendingRoute="/ama" setPendingRoute={setPendingRoute} currentLang={currentLang} />} />
+          <Route path="/" element={<Home showWarning={showWarning} setShowWarning={setShowWarning} accepted={accepted} setAccepted={setAccepted} refused={refused} setRefused={setRefused} pendingRoute={pendingRoute} setPendingRoute={setPendingRoute} currentLang={currentLang} isDarkMode={isDarkMode} />} />
+          <Route path="/medications" element={accepted ? <MedSearch currentLang={currentLang} /> : <Home showWarning={true} setShowWarning={setShowWarning} accepted={accepted} setAccepted={setAccepted} refused={refused} setRefused={setRefused} pendingRoute="/medications" setPendingRoute={setPendingRoute} currentLang={currentLang} isDarkMode={isDarkMode} />} />
+          <Route path="/ama" element={accepted ? <AmaSearch currentLang={currentLang} /> : <Home showWarning={true} setShowWarning={setShowWarning} accepted={accepted} setAccepted={setAccepted} refused={refused} setRefused={setRefused} pendingRoute="/ama" setPendingRoute={setPendingRoute} currentLang={currentLang} isDarkMode={isDarkMode} />} />
         </Routes>
       </main>
-      <Footer hasAccepted={accepted} onTriggerWarning={handleTriggerWarning} onResetHome={handleResetHome} currentLang={currentLang} />
+      <Footer 
+        hasAccepted={accepted} 
+        onTriggerWarning={handleTriggerWarning} 
+        onResetHome={handleResetHome} 
+        currentLang={currentLang} 
+        isDarkMode={isDarkMode} 
+      />
     </div>
   );
 }

@@ -21,8 +21,19 @@ export default function Header({ hasAccepted, onTriggerWarning, onResetHome, cur
     <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-40 shadow-sm transition-colors duration-300">
       <div className="max-w-6xl mx-auto px-4 md:px-6 py-3 flex items-center justify-between">
         <Link to="/" onClick={(e) => handleNavClick(e, '/')} className="flex items-center gap-3 no-underline">
-          <img src="/icon.png" alt="Logo Mobile" className="block sm:hidden h-10 object-contain" />
-          <img src="/favicon.png" alt="Logo Desktop" className="hidden sm:block h-14 object-contain" />
+          {/* Logo pour Mobile */}
+          <img 
+            src="/icon.png" 
+            alt="Logo Mobile" 
+            className="block sm:hidden h-10 object-contain" 
+          />
+          
+          {/* Logo Desktop : passe de favicon.png à logosombre.png selon le mode */}
+          <img 
+            src={isDarkMode ? "/logosombre.png" : "/favicon.png"} 
+            alt="Logo Desktop" 
+            className="hidden sm:block h-14 object-contain" 
+          />
         </Link>
         <nav className="flex items-center gap-3 md:gap-6">
           <Link to="/" onClick={(e) => handleNavClick(e, '/')} className="text-xs md:text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-[#00bcd4] dark:hover:text-[#00bcd4] transition">{t.home}</Link>
